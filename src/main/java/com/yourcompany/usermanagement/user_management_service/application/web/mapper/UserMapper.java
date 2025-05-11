@@ -3,6 +3,7 @@ package com.yourcompany.usermanagement.user_management_service.application.web.m
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
 import com.yourcompany.usermanagement.user_management_service.application.web.dto.UserCreateRequest;
+import com.yourcompany.usermanagement.user_management_service.application.web.dto.UserResponse;
 
 public class UserMapper {
 
