@@ -1,14 +1,22 @@
 package com.yourcompany.usermanagement.user_management_service.application.service.interfaces;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Address;
+import com.yourcompany.usermanagement.user_management_service.application.web.dto.AddressCreateRequest;
+import com.yourcompany.usermanagement.user_management_service.application.web.dto.AddressUpdateRequest;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface IAddressService {
-    Address createAddress(UUID userId, Address address);
+    Address createAddress(UUID userId, AddressCreateRequest address);
 
     List<Address> getAddressesByUserId(UUID userId);
 
     void deleteAddress(UUID addressId);
+
+    Address updateAddress(UUID id, AddressUpdateRequest request);
+
+    Optional<Address> getAddressById(UUID id);
+
 }

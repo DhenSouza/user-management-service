@@ -3,6 +3,7 @@ package com.yourcompany.usermanagement.user_management_service.application.servi
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Email;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
+import com.yourcompany.usermanagement.user_management_service.application.service.exceptions.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.application.service.interfaces.IUserService;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
 import jakarta.transaction.Transactional;
@@ -65,4 +66,15 @@ public class UserService implements IUserService {
         user.setPassword(passwordEncoder.encode(newRawPassword));
         return userRepository.save(user);
     }
+
+    @Transactional
+    public User updateUser(UUID id, String name, String email) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
+
+        user.setName(name);
+        user.setEmail(new Email(email).toString());
+        return userRepository.save(user);
+    }
+
 }

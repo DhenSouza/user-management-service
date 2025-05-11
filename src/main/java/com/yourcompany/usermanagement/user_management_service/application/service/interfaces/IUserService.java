@@ -19,4 +19,6 @@ public interface IUserService {
     public void deleteUser(UUID id);
 
     User updatePassword(UUID userId, String newRawPassword);
+
+    User updateUser(UUID id, String name, String email);
 }

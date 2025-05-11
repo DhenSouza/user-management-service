@@ -7,6 +7,7 @@ import com.yourcompany.usermanagement.user_management_service.application.servic
 import com.yourcompany.usermanagement.user_management_service.application.web.dto.PasswordUpdateRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.dto.UserCreateRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.dto.UserResponse;
+import com.yourcompany.usermanagement.user_management_service.application.web.dto.UserUpdateRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.mapper.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Tag(name = "Users", description = "User management endpoints")
@@ -35,10 +37,12 @@ public class UserController {
     })
     @GetMapping
     public ResponseEntity<List<UserResponse>> listUsers() {
-        return ResponseEntity.ok(userService.listAllUsers()
-                .stream()
-                .map(UserMapper::toResponse)
-                .toList());
+        return ResponseEntity.ok(
+                userService.listAllUsers()
+                        .stream()
+                        .map(UserMapper::toResponse)
+                        .toList()
+        );
     }
 
     @Operation(summary = "Get a user by ID")
@@ -48,9 +52,9 @@ public class UserController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable UUID id) {
-        return userService.getUserById(id)
-                .map(user -> ResponseEntity.ok(UserMapper.toResponse(user)))
-                .orElse(ResponseEntity.notFound().build());
+        User user = userService.getUserById(id)
+                .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + id));
+        return ResponseEntity.ok(UserMapper.toResponse(user));
     }
 
     @Operation(summary = "Create a new user")
@@ -60,7 +64,12 @@ public class UserController {
     })
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserCreateRequest request) {
-        User user = userService.createUser(request.name(), request.email(), request.password(), Role.USER);
+        User user = userService.createUser(
+                request.name(),
+                request.email(),
+                request.password(),
+                Role.USER
+        );
         return ResponseEntity.ok(UserMapper.toResponse(user));
     }
 
@@ -70,8 +79,11 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     @PutMapping("/{id}/password")
-    public ResponseEntity<UserResponse> updatePassword(@PathVariable UUID id, @RequestBody PasswordUpdateRequest request) {
-        return ResponseEntity.ok(UserMapper.toResponse(userService.updatePassword(id, request.password())));
+    public ResponseEntity<UserResponse> updatePassword(
+            @PathVariable UUID id,
+            @Valid @RequestBody PasswordUpdateRequest request) {
+        User user = userService.updatePassword(id, request.password());
+        return ResponseEntity.ok(UserMapper.toResponse(user));
     }
 
     @Operation(summary = "Delete a user by ID")
@@ -84,4 +96,19 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Update a user's name and email")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User updated"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponse> updateUser(
+            @PathVariable UUID id,
+            @Valid @RequestBody UserUpdateRequest request) {
+        User updated = userService.updateUser(id, request.name(), request.email());
+        return ResponseEntity.ok(UserMapper.toResponse(updated));
+    }
+
 }
