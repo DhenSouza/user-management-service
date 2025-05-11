@@ -24,8 +24,10 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @NotBlank
+    @jakarta.validation.constraints.Email
     @Column(nullable = false, unique = true)
-    private Email email;
+    private String email;
 
     @Column(nullable = false)
     private String password;
