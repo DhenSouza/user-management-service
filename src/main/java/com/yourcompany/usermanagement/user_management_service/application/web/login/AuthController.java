@@ -30,15 +30,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
-            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-            String rawPassword = "admin123";
-            String hashedPassword = encoder.encode(rawPassword);
-
-            System.out.println("Senha original: " + rawPassword);
-            System.out.println("Senha codificada: " + hashedPassword);
-
-            System.out.println(encoder.matches(rawPassword, hashedPassword));
-
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.email(), request.password())
             );
