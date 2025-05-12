@@ -47,7 +47,7 @@ Por padrão o projeto usa PostgreSQL com Docker:
 
 Você pode iniciar o PostgreSQL de duas formas:
 
-#### ✅ Usando `docker-compose.yml` (recomendado)
+#### ✅ Usando `docker-compose.yml` (recomendado e usado atualmente no projeto)
 
 Crie um arquivo `docker-compose.yml` com o seguinte conteúdo:
 
@@ -87,9 +87,10 @@ Se preferir, você pode iniciar o container com:
 
 ```bash
 docker run --name postgres \
+  -e POSTGRES_USER=administration \
   -e POSTGRES_PASSWORD=admin \
   -e POSTGRES_DB=userdb \
-  -p 5432:5432 \
+  -p 5433:5432 \
   -d postgres
 ```
 
