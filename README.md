@@ -33,7 +33,7 @@ Uma API RESTful para gerenciamento de usuários e endereços, com autenticação
 
 ## ✨ Executando o Projeto
 
-### Clone o repositório:
+### Clone o repositório
 
 ```bash
 git clone git@github.com:DhenSouza/user-management-service.git
@@ -43,11 +43,52 @@ git clone git@github.com:DhenSouza/user-management-service.git
 
 Por padrão o projeto usa PostgreSQL com Docker:
 
-```bash
-docker run --name postgres -e POSTGRES_PASSWORD=admin -e POSTGRES_DB=userdb -p 5432:5432 -d postgres
+### 🐳 Rodando o banco PostgreSQL com Docker
+
+Você pode iniciar o PostgreSQL de duas formas:
+
+#### ✅ Usando `docker-compose.yml` (recomendado)
+
+Crie um arquivo `docker-compose.yml` com o seguinte conteúdo:
+
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
 ```
 
-Configure no `application.properties`:
+Depois, execute:
+
+```bash
+docker-compose up -d
+```
+
+#### ✅ Usando `docker run` diretamente
+
+Se preferir, você pode iniciar o container com:
+
+```bash
+docker run --name postgres \
+  -e POSTGRES_PASSWORD=admin \
+  -e POSTGRES_DB=userdb \
+  -p 5432:5432 \
+  -d postgres
+```
+
+#### 🛠️ Configuração do `application.properties`
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/userdb
@@ -55,15 +96,27 @@ spring.datasource.username=postgres
 spring.datasource.password=admin
 ```
 
+> 💡 **Nota:** certifique-se de que a porta `5432` não esteja sendo usada por outro serviço.
+
+---
+
+### 🔒 Secret Management
+
+Atualmente, o projeto utiliza a configuração de secrets (como senhas e chaves JWT) diretamente no `application.properties` como uma solução **provisória**, com valores hardcoded.  
+A recomendação ideal é armazenar essas informações sensíveis em serviços seguros como o **AWS Secrets Manager**, **HashiCorp Vault** ou similares, com acesso via injeção de dependência ou variáveis de ambiente.
+
+---
+
 ### Subir com Docker
 
 ```bash
 docker-compose up --build
 ```
 
-> Certifique-se de que seu `application.properties` esteja configurado corretamente para usar PostgreSQL.
-> OBS: Secret estara alocada via .properties provisóriamente.
-> 
+> Certifique-se de que seu `application.properties` esteja configurado corretamente para usar PostgreSQL e os secrets adequados.
+
+---
+
 ### Executar localmente via Maven
 
 ```bash
