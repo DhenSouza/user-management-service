@@ -1,7 +1,7 @@
 package com.yourcompany.usermanagement.user_management_service.application.web.mapper;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Address;
-import com.yourcompany.usermanagement.user_management_service.application.web.dto.AddressResponse;
+import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressResponse;
 
 public class AddressMapper {
 

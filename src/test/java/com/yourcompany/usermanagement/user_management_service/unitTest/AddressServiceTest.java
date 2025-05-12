@@ -2,9 +2,9 @@ package com.yourcompany.usermanagement.user_management_service.unitTest;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Address;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
-import com.yourcompany.usermanagement.user_management_service.application.service.AddressService;
-import com.yourcompany.usermanagement.user_management_service.application.web.dto.AddressCreateRequest;
-import com.yourcompany.usermanagement.user_management_service.application.web.dto.AddressUpdateRequest;
+import com.yourcompany.usermanagement.user_management_service.application.service.address.AddressService;
+import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressCreateRequest;
+import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressUpdateRequest;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IAddressRepository;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
 import org.junit.jupiter.api.BeforeEach;

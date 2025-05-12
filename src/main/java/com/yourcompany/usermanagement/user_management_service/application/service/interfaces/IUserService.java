@@ -2,13 +2,14 @@ package com.yourcompany.usermanagement.user_management_service.application.servi
 
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface IUserService {
-    List<User> listAllUsers();
+    Page<User> listAllUsers(Pageable pageable);
 
     Optional<User> getUserById(UUID id);
 
@@ -20,5 +21,5 @@ public interface IUserService {
 
     User updatePassword(UUID userId, String newRawPassword);
 
-    User updateUser(UUID id, String name, String email);
+    User updateUser(UUID id, String name, String email, String rawPassword);
 }

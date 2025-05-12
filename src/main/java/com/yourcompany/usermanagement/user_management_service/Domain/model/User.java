@@ -36,5 +36,5 @@ public class User {
     @Column(nullable = false)
     private Role role = Role.USER;
 
-    private boolean active = true;
+    private boolean active;
 }

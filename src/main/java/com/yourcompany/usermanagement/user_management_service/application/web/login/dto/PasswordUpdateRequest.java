@@ -1,4 +1,4 @@
-package com.yourcompany.usermanagement.user_management_service.application.web.dto;
+package com.yourcompany.usermanagement.user_management_service.application.web.login.dto;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;

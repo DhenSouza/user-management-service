@@ -2,14 +2,21 @@ package com.yourcompany.usermanagement.user_management_service.unitTest;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
-import com.yourcompany.usermanagement.user_management_service.application.service.UserService;
+import com.yourcompany.usermanagement.user_management_service.application.service.authorization.interfaces.IAuthorizationService;
+import com.yourcompany.usermanagement.user_management_service.application.service.user.UserService;
 import com.yourcompany.usermanagement.user_management_service.application.service.exceptions.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -22,7 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+@ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
     @Mock
@@ -30,6 +37,9 @@ public class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private IAuthorizationService authorizationService;
 
     @InjectMocks
     private UserService userService;
@@ -39,7 +49,6 @@ public class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         userId = UUID.randomUUID();
         user = User.builder()
                 .id(userId)
@@ -56,7 +65,7 @@ public class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
 
-        User updated = userService.updateUser(userId, "Jane Doe", "jane@example.com");
+        User updated = userService.updateUser(userId, "Jane Doe", "jane@example.com", "123");
 
         assertThat(updated.getName()).isEqualTo("Jane Doe");
         assertThat(updated.getEmail()).isEqualTo("jane@example.com");
@@ -66,21 +75,24 @@ public class UserServiceTest {
     void shouldThrowWhenUpdatingNonexistentUser() {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.updateUser(userId, "Jane Doe", "jane@example.com"))
+        assertThatThrownBy(() -> userService.updateUser(userId, "Jane Doe", "jane@example.com", "123"))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessageContaining("User not found with ID");
     }
 
     @Test
     void shouldListAllUsers() {
-        List<User> mockUsers = List.of(user);
-        when(userRepository.findAll()).thenReturn(mockUsers);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<User> mockPage = new PageImpl<>(List.of(user), pageable, 1);
 
-        List<User> result = userService.listAllUsers();
+        when(userRepository.findAll(pageable)).thenReturn(mockPage);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getEmail()).isEqualTo(user.getEmail());
+        Page<User> result = userService.listAllUsers(pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().get(0).getEmail()).isEqualTo(user.getEmail());
     }
+
 
     @Test
     void shouldGetUserById() {
@@ -148,5 +160,4 @@ public class UserServiceTest {
         userService.deleteUser(userId);
         verify(userRepository).deleteById(userId);
     }
-
 }

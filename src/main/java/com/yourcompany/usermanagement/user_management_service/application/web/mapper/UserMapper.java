@@ -2,8 +2,8 @@ package com.yourcompany.usermanagement.user_management_service.application.web.m
 
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
-import com.yourcompany.usermanagement.user_management_service.application.web.dto.UserCreateRequest;
-import com.yourcompany.usermanagement.user_management_service.application.web.dto.UserResponse;
+import com.yourcompany.usermanagement.user_management_service.application.web.user.dto.UserCreateRequest;
+import com.yourcompany.usermanagement.user_management_service.application.web.user.dto.UserResponse;
 
 public class UserMapper {
 
@@ -22,7 +22,7 @@ public class UserMapper {
                 .name(request.name())
                 .email(request.email())
                 .password(hashedPassword)
-                .role(Role.USER) // ou request.role() se quiser parametrizar
+                .role(Role.USER)
                 .active(true)
                 .build();
     }
