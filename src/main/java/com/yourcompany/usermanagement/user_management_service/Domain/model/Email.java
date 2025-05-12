@@ -1,18 +1,16 @@
 package com.yourcompany.usermanagement.user_management_service.Domain.model;
 
 import jakarta.validation.constraints.NotBlank;
-
 import java.util.Objects;
 
-public class Email {
+public final class Email {
 
     @NotBlank
-    @jakarta.validation.constraints.Email
     private final String value;
 
     public Email(String value) {
         if (value == null || !value.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-            throw new IllegalArgumentException("Invalid email format");
+            throw new IllegalArgumentException("Invalid email format: " + value);
         }
         this.value = value;
     }
@@ -22,20 +20,19 @@ public class Email {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Email)) return false;
-        Email email = (Email) o;
-        return value.equalsIgnoreCase(email.value);
+    public String toString() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Email other)) return false;
+        return value.equalsIgnoreCase(other.value);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(value.toLowerCase());
-    }
-
-    @Override
-    public String toString() {
-        return value;
     }
 }

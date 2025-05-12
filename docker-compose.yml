@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:15.2
+    container_name: postgres
+    environment:
+      POSTGRES_USER: administration
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: userdb
+      POSTGRES_INITDB_ARGS: "--auth=md5"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+
+networks:
+  backend:
