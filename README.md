@@ -94,6 +94,10 @@ docker run --name postgres \
   -d postgres
 ```
 
+#### ✅ Usando a aplicação diretamente com banco de dados local:
+- Para isso basta nao rodar o docker-compose.yml e setar as configurações em seu application.properties de acordo com sua necessidade: 
+
+
 #### 🛠️ Configuração do `application.properties`
 
 ```properties
@@ -103,6 +107,7 @@ spring.datasource.password=admin
 ```
 
 > 💡 **Nota:** certifique-se de que a porta `5433` não esteja sendo usada por outro serviço.
+> > 💡 **Nota:** a porta `5433` foi utilizada para evitar conflitos caso ja tenha um banco de dados PostgresSQL com configurações default.
 
 ---
 
@@ -111,6 +116,11 @@ spring.datasource.password=admin
 Atualmente, o projeto utiliza a configuração de secrets (como senhas e chaves JWT) diretamente no `application.properties` como uma solução **provisória**, com valores hardcoded.  
 A recomendação ideal é armazenar essas informações sensíveis em serviços seguros como o **AWS Secrets Manager**, **HashiCorp Vault** ou similares, com acesso via injeção de dependência ou variáveis de ambiente.
 
+```properties
+# === JWT Configuration ===
+security.jwt.secret=hVZSpn47ytq9kCM7zPIYmeNgCWbLogF0eQlVa0tVXTYJDrBKQHX8u
+security.jwt.expiration=3600000
+```
 ---
 
 ### Subir com Docker
@@ -178,6 +188,28 @@ A aplicação subirá em: [http://localhost:8080](http://localhost:8080)
   "email": "admin@example.com",
   "password": "admin123"
 }
+```
+- OBS: Projeto tera um Migrator que criara um usuario Administrador, para testar os endpoints livremente basta realizar a request de login
+
+**Request de exemplo do Login**
+```txt
+curl --request POST \
+--url http://localhost:8080/api/auth/login \
+--header 'Content-Type: application/json' \
+--header 'User-Agent: insomnia/11.1.0' \
+--data '{
+"email": "admin@example.com",
+"password": "admin123"
+}'
+```
+**Request de exemplo de endpoint**
+```txt
+curl --request GET \
+--url 'http://localhost:8080/api/users?page=0&size=5&sort=name%2Casc' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTc0NzA2ODYwMiwiZXhwIjoxNzQ3MDcyMjAyfQ.08MhFGTmk1iayPeJE4v3s61rqQ9VM0-qql99KLTJpwo' \
+--header 'User-Agent: insomnia/11.1.0'
+```
+```
 ```
 
 Use o token JWT retornado no header das requisições protegidas:
