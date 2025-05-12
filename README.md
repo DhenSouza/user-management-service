@@ -52,22 +52,27 @@ Você pode iniciar o PostgreSQL de duas formas:
 Crie um arquivo `docker-compose.yml` com o seguinte conteúdo:
 
 ```yaml
-version: '3.8'
-
 services:
   postgres:
-    image: postgres
+    image: postgres:15.2
     container_name: postgres
     environment:
-      POSTGRES_DB: userdb
+      POSTGRES_USER: administration
       POSTGRES_PASSWORD: admin
+      POSTGRES_DB: userdb
+      POSTGRES_INITDB_ARGS: "--auth=md5"
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
 
 volumes:
-  pgdata:
+  postgres_data:
+
+networks:
+  backend:
 ```
 
 Depois, execute:
@@ -91,12 +96,12 @@ docker run --name postgres \
 #### 🛠️ Configuração do `application.properties`
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/userdb
-spring.datasource.username=postgres
+spring.datasource.url=jdbc:postgresql://localhost:5433/userdb
+spring.datasource.username=administration
 spring.datasource.password=admin
 ```
 
-> 💡 **Nota:** certifique-se de que a porta `5432` não esteja sendo usada por outro serviço.
+> 💡 **Nota:** certifique-se de que a porta `5433` não esteja sendo usada por outro serviço.
 
 ---
 
@@ -110,7 +115,7 @@ A recomendação ideal é armazenar essas informações sensíveis em serviços 
 ### Subir com Docker
 
 ```bash
-docker-compose up --build
+docker-compose up -d
 ```
 
 > Certifique-se de que seu `application.properties` esteja configurado corretamente para usar PostgreSQL e os secrets adequados.
