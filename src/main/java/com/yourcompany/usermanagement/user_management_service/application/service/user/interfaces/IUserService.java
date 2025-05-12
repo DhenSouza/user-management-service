@@ -1,4 +1,4 @@
-package com.yourcompany.usermanagement.user_management_service.application.service.interfaces;
+package com.yourcompany.usermanagement.user_management_service.application.service.user.interfaces;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;

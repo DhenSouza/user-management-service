@@ -1,7 +1,7 @@
 package com.yourcompany.usermanagement.user_management_service.application.web.address;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Address;
-import com.yourcompany.usermanagement.user_management_service.application.service.interfaces.IAddressService;
+import com.yourcompany.usermanagement.user_management_service.application.service.address.interfaces.IAddressService;
 import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressCreateRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressResponse;
 import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressUpdateRequest;
