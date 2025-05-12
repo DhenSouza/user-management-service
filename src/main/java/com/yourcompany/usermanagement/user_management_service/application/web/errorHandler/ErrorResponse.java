@@ -1,4 +1,4 @@
-package com.yourcompany.usermanagement.user_management_service.application.web.dto.errorHandler;
+package com.yourcompany.usermanagement.user_management_service.application.web.errorHandler;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

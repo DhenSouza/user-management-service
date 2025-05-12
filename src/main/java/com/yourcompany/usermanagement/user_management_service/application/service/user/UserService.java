@@ -1,8 +1,9 @@
-package com.yourcompany.usermanagement.user_management_service.application.service;
+package com.yourcompany.usermanagement.user_management_service.application.service.user;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Email;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
+import com.yourcompany.usermanagement.user_management_service.application.service.authorization.interfaces.IAuthorizationService;
 import com.yourcompany.usermanagement.user_management_service.application.service.exceptions.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.application.service.interfaces.IUserService;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
@@ -11,7 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,22 +25,28 @@ public class UserService implements IUserService {
 
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final IAuthorizationService authorizationService;
 
-    public List<User> listAllUsers() {
-        return userRepository.findAll();
+    public Page<User> listAllUsers(Pageable pageable) {
+        authorizationService.ensureAdmin();
+        return userRepository.findAll(pageable);
     }
 
+
     public Optional<User> getUserById(UUID id) {
+        authorizationService.ensureSelfOrAdmin(id);
         return userRepository.findById(id);
     }
 
     public Optional<User> getEmailById(String email) {
+        authorizationService.ensureSelfOrAdmin(email);
         return userRepository.findByEmail(email);
     }
 
     @Transactional
     public User createUser(String name, String rawEmail, String rawPassword, Role role) {
-        Email email = new Email(rawEmail); // validação do VO
+        authorizationService.ensureSelfOrAdmin(rawEmail);
+        Email email = new Email(rawEmail);
 
         if (userRepository.existsByEmail(email.getValue())) {
             throw new IllegalArgumentException("Email already in use.");
@@ -55,11 +65,13 @@ public class UserService implements IUserService {
 
     @Transactional
     public void deleteUser(UUID id) {
+        authorizationService.ensureSelfOrAdmin(id);
         userRepository.deleteById(id);
     }
 
     @Transactional
     public User updatePassword(UUID userId, String newRawPassword) {
+        authorizationService.ensureSelfOrAdmin(userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -68,13 +80,14 @@ public class UserService implements IUserService {
     }
 
     @Transactional
-    public User updateUser(UUID id, String name, String email) {
+    public User updateUser(UUID id, String name, String email, String rawPassword) {
+        authorizationService.ensureSelfOrAdmin(id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
 
         user.setName(name);
         user.setEmail(new Email(email).toString());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
-
 }

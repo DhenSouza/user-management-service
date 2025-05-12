@@ -1,10 +1,10 @@
-package com.yourcompany.usermanagement.user_management_service.application.service;
+package com.yourcompany.usermanagement.user_management_service.application.service.address;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Address;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
 import com.yourcompany.usermanagement.user_management_service.application.service.interfaces.IAddressService;
-import com.yourcompany.usermanagement.user_management_service.application.web.dto.AddressCreateRequest;
-import com.yourcompany.usermanagement.user_management_service.application.web.dto.AddressUpdateRequest;
+import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressCreateRequest;
+import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressUpdateRequest;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IAddressRepository;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
 import jakarta.transaction.Transactional;

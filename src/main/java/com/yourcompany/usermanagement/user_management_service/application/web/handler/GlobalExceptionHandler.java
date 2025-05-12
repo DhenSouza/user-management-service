@@ -1,7 +1,7 @@
 package com.yourcompany.usermanagement.user_management_service.application.web.handler;
 
 import com.yourcompany.usermanagement.user_management_service.application.service.exceptions.UserNotFoundException;
-import com.yourcompany.usermanagement.user_management_service.application.web.dto.errorHandler.ErrorResponse;
+import com.yourcompany.usermanagement.user_management_service.application.web.errorHandler.ErrorResponse;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
