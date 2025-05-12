@@ -116,7 +116,41 @@ docker-compose up --build
 > Certifique-se de que seu `application.properties` esteja configurado corretamente para usar PostgreSQL e os secrets adequados.
 
 ---
+### 📦 Migrations automáticas com Flyway
 
+O projeto utiliza o Flyway para versionamento e execução automática de scripts SQL na inicialização.  
+As migrations devem ser colocadas no diretório `src/main/resources/db/migration` com o prefixo `V` seguido do número da versão e nome descritivo.
+
+Exemplo:
+- `V1__create_table_users.sql`
+- `V2__insert_initial_roles.sql`
+
+Exemplo de conteúdo:
+```sql
+CREATE TABLE users (
+    id UUID PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+```
+
+Configuração necessária no `application.properties`:
+```properties
+spring.flyway.enabled=true
+spring.flyway.locations=classpath:db/migration
+spring.flyway.ignore-future-migration=true
+spring.flyway.ignore-missing-migrations=true
+spring.flyway.fail-on-missing-locations=false
+spring.flyway.skip-default-callbacks=true
+spring.flyway.skip-default-resolvers=true
+spring.flyway.teams.enabled=false
+spring.flyway.teams.url-check-enabled=false
+```
+
+➡️ Com isso, ao rodar a aplicação com `./mvnw spring-boot:run` ou `docker-compose up`, as migrations serão executadas automaticamente se ainda não aplicadas.
+
+---
 ### Executar localmente via Maven
 
 ```bash

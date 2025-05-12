@@ -5,7 +5,7 @@ import com.yourcompany.usermanagement.user_management_service.Domain.model.Email
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
 import com.yourcompany.usermanagement.user_management_service.application.service.authorization.interfaces.IAuthorizationService;
 import com.yourcompany.usermanagement.user_management_service.application.service.exceptions.UserNotFoundException;
-import com.yourcompany.usermanagement.user_management_service.application.service.interfaces.IUserService;
+import com.yourcompany.usermanagement.user_management_service.application.service.user.interfaces.IUserService;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.yourcompany.usermanagement.user_management_service.application.service.interfaces;
+package com.yourcompany.usermanagement.user_management_service.application.service.address.interfaces;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Address;
 import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressCreateRequest;

@@ -2,7 +2,7 @@ package com.yourcompany.usermanagement.user_management_service.application.web.u
 
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
-import com.yourcompany.usermanagement.user_management_service.application.service.interfaces.IUserService;
+import com.yourcompany.usermanagement.user_management_service.application.service.user.interfaces.IUserService;
 import com.yourcompany.usermanagement.user_management_service.application.web.login.dto.PasswordUpdateRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.mapper.UserMapper;
 import com.yourcompany.usermanagement.user_management_service.application.web.user.dto.UserCreateRequest;
