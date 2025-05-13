@@ -2,6 +2,7 @@ package com.yourcompany.usermanagement.user_management_service.application.web.h
 
 import com.yourcompany.usermanagement.user_management_service.application.service.exceptions.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.application.web.errorHandler.ErrorResponse;
+import com.yourcompany.usermanagement.user_management_service.application.web.errorHandler.ExternalServiceException;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -90,6 +91,16 @@ public class GlobalExceptionHandler {
                 List.of(ex.getMessage()),
                 LocalDateTime.now()
         ), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ExternalServiceException.class)
+    public ResponseEntity<ErrorResponse> handleExternalServiceException(ExternalServiceException ex) {
+        return new ResponseEntity<>(new ErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "User not found",
+                List.of(ex.getMessage()),
+                LocalDateTime.now()
+        ), HttpStatus.SERVICE_UNAVAILABLE);
     }
 
 }

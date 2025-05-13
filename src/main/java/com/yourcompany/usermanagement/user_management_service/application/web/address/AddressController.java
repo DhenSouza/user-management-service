@@ -2,9 +2,7 @@ package com.yourcompany.usermanagement.user_management_service.application.web.a
 
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Address;
 import com.yourcompany.usermanagement.user_management_service.application.service.address.interfaces.IAddressService;
-import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressCreateRequest;
-import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressResponse;
-import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressUpdateRequest;
+import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.*;
 import com.yourcompany.usermanagement.user_management_service.application.web.mapper.AddressMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -92,5 +90,17 @@ public class AddressController {
     public ResponseEntity<Void> deleteAddress(@PathVariable UUID id) {
         addressService.deleteAddress(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get address by CEP from external ViaCEP service")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Address found"),
+            @ApiResponse(responseCode = "400", description = "Invalid CEP format"),
+            @ApiResponse(responseCode = "404", description = "CEP not found")
+    })
+    @GetMapping("/viaCep/postalCode")
+    public ResponseEntity<AddressCepResponse> getAddressByCep(@Valid @RequestBody AddresCepRequest request) {
+        AddressCepResponse response = addressService.getAddressFromCep(request.postalCode());
+        return ResponseEntity.ok(response);
     }
 }

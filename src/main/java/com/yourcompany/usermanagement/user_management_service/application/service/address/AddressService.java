@@ -3,8 +3,12 @@ package com.yourcompany.usermanagement.user_management_service.application.servi
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Address;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
 import com.yourcompany.usermanagement.user_management_service.application.service.address.interfaces.IAddressService;
+import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressCepResponse;
 import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressCreateRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressUpdateRequest;
+import com.yourcompany.usermanagement.user_management_service.application.web.errorHandler.ExternalServiceException;
+import com.yourcompany.usermanagement.user_management_service.infrastructure.externalServices.viaCepApi.dto.ViaCepResponse;
+import com.yourcompany.usermanagement.user_management_service.infrastructure.externalServices.viaCepApi.interfaces.ICepService;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IAddressRepository;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
 import jakarta.transaction.Transactional;
@@ -22,6 +26,7 @@ public class AddressService implements IAddressService {
 
     private final IAddressRepository addressRepository;
     private final IUserRepository userRepository;
+    private final ICepService cepService;
 
     public List<Address> getAddressesByUserId(UUID userId) {
         return addressRepository.findAllByUserId(userId);
@@ -72,5 +77,21 @@ public class AddressService implements IAddressService {
                 .orElseThrow(() -> new NoSuchElementException("Address not found with ID: " + id)));
     }
 
+    @Transactional
+    public AddressCepResponse getAddressFromCep(String cep) {
+        ViaCepResponse viaCep = cepService.getCodePostal(cep);
+
+        if (viaCep.getPostalCode() == null) {
+            throw new ExternalServiceException("CEP not found or invalid");
+        }
+
+        return new AddressCepResponse(
+                viaCep.getPostalCode(),
+                viaCep.getStreet(),
+                viaCep.getNeighborhood(),
+                viaCep.getCity(),
+                viaCep.getState()
+        );
+    }
 
 }
