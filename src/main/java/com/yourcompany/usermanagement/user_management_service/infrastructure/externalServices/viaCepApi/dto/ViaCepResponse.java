@@ -14,6 +14,9 @@ public class ViaCepResponse {
     @JsonProperty("logradouro")
     private String street;
 
+    @JsonProperty("complemento")
+    private String complement;
+
     @JsonProperty("bairro")
     private String neighborhood;
 
@@ -23,4 +26,18 @@ public class ViaCepResponse {
     @JsonProperty("uf")
     private String state;
 
+    @JsonProperty("ibge")
+    private String ibgeCode;
+
+    @JsonProperty("gia")
+    private String giaCode;
+
+    @JsonProperty("ddd")
+    private String ddd;
+
+    @JsonProperty("siafi")
+    private String siafiCode;
+
+    @JsonProperty("erro")
+    private Boolean error;
 }

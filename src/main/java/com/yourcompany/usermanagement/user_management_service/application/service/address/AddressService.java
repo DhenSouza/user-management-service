@@ -14,6 +14,7 @@ import com.yourcompany.usermanagement.user_management_service.infrastructure.rep
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -36,6 +37,12 @@ public class AddressService implements IAddressService {
     public Address createAddress(UUID userId, AddressCreateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        var addressViaCep = this.getAddressFromCep(request.postalCode());
+
+        if(addressViaCep.error()){
+            throw new ExternalServiceException("Postal Code invalid");
+        }
 
         Address address = Address.builder()
                 .street(request.street())
@@ -60,6 +67,12 @@ public class AddressService implements IAddressService {
     public Address updateAddress(UUID id, AddressUpdateRequest request) {
         Address address = addressRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Address not found"));
+
+        var addressViaCep = this.getAddressFromCep(request.postalCode());
+
+        if(addressViaCep == null){
+            throw new ExternalServiceException("Postal Code invalid");
+        }
 
         address.setStreet(request.street());
         address.setNumber(request.number());
@@ -88,9 +101,15 @@ public class AddressService implements IAddressService {
         return new AddressCepResponse(
                 viaCep.getPostalCode(),
                 viaCep.getStreet(),
+                viaCep.getComplement(),
                 viaCep.getNeighborhood(),
                 viaCep.getCity(),
-                viaCep.getState()
+                viaCep.getState(),
+                viaCep.getIbgeCode(),
+                viaCep.getGiaCode(),
+                viaCep.getDdd(),
+                viaCep.getSiafiCode(),
+                viaCep.getError()
         );
     }
 
