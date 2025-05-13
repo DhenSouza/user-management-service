@@ -109,6 +109,11 @@
 			<version>9.22.3</version> <!-- versão estável que aceita PostgreSQL 15 -->
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+			<version>3.4.5</version>
+		</dependency>
 
 	</dependencies>
 
