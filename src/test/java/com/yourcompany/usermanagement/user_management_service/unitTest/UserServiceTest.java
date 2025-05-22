@@ -1,17 +1,16 @@
 package com.yourcompany.usermanagement.user_management_service.unitTest;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
+import com.yourcompany.usermanagement.user_management_service.Domain.exception.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
 import com.yourcompany.usermanagement.user_management_service.application.service.authorization.interfaces.IAuthorizationService;
 import com.yourcompany.usermanagement.user_management_service.application.service.user.UserService;
-import com.yourcompany.usermanagement.user_management_service.application.service.exceptions.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

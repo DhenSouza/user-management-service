@@ -1,20 +1,18 @@
 package com.yourcompany.usermanagement.user_management_service.application.service.user;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
+import com.yourcompany.usermanagement.user_management_service.Domain.exception.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.Email;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
 import com.yourcompany.usermanagement.user_management_service.application.service.authorization.interfaces.IAuthorizationService;
-import com.yourcompany.usermanagement.user_management_service.application.service.exceptions.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.application.service.user.interfaces.IUserService;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -49,7 +47,7 @@ public class UserService implements IUserService {
         Email email = new Email(rawEmail);
 
         if (userRepository.existsByEmail(email.getValue())) {
-            throw new IllegalArgumentException("Email already in use.");
+            throw new UserNotFoundException("Email already in use.");
         }
 
         User user = User.builder()
@@ -73,7 +71,7 @@ public class UserService implements IUserService {
     public User updatePassword(UUID userId, String newRawPassword) {
         authorizationService.ensureSelfOrAdmin(userId);
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         user.setPassword(passwordEncoder.encode(newRawPassword));
         return userRepository.save(user);
@@ -83,7 +81,7 @@ public class UserService implements IUserService {
     public User updateUser(UUID id, String name, String email, String rawPassword) {
         authorizationService.ensureSelfOrAdmin(id);
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         user.setName(name);
         user.setEmail(new Email(email).toString());
