@@ -1,6 +1,8 @@
 package com.yourcompany.usermanagement.user_management_service.application.web.handler;
 
 import com.yourcompany.usermanagement.user_management_service.Domain.exception.LoginException;
+import com.yourcompany.usermanagement.user_management_service.application.web.errorHandler.ExternalServiceException;
+import com.yourcompany.usermanagement.user_management_service.application.web.errorHandler.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -18,6 +20,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Hidden
@@ -91,5 +94,31 @@ public class GlobalExceptionHandler {
                 .title(problemType.getTitle())
                 .detail(detail);
     }
+
+    @ExceptionHandler({ IllegalArgumentException.class, NoSuchElementException.class })
+    public ResponseEntity<Object> handleEntityNotFound(RuntimeException ex, WebRequest request) {
+        ProblemType problemType = ProblemType.RECURSO_NAO_ENCONTRADO; // ou crie um novo enum se não existir
+        String detail = ex.getMessage();
+
+        Problem problem = createProblemBuilder(HttpStatus.NOT_FOUND, problemType, detail)
+                .userMessage(detail) // ou uma mensagem mais amigável, como "Recurso não encontrado"
+                .build();
+
+        return new ResponseEntity<>(problem, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Object> handleNotFound(ResourceNotFoundException ex, WebRequest request) {
+        ProblemType problemType = ProblemType.RECURSO_NAO_ENCONTRADO;  // crie esse enum
+        String detail = ex.getMessage();
+
+        Problem problem = createProblemBuilder(HttpStatus.NOT_FOUND, problemType, detail)
+                .userMessage(detail)
+                .build();
+
+        return new ResponseEntity<>(problem, HttpStatus.NOT_FOUND);
+    }
+
+
 }
 

@@ -32,9 +32,6 @@ public record AddressCepResponse(
         String ddd,
 
         @Schema(description = "SIAFI code", example = "7107")
-        String siafiCode,
-
-        @Schema(description = "Cep is valid", example = "true")
-        Boolean error
+        String siafiCode
 
 ) {}
