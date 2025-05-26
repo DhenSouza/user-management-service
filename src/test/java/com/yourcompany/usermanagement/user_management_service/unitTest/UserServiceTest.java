@@ -1,10 +1,20 @@
 package com.yourcompany.usermanagement.user_management_service.unitTest;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.verify;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import com.yourcompany.usermanagement.user_management_service.Domain.enums.Role;
 import com.yourcompany.usermanagement.user_management_service.Domain.exception.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
 import com.yourcompany.usermanagement.user_management_service.application.service.authorization.interfaces.IAuthorizationService;
 import com.yourcompany.usermanagement.user_management_service.application.service.user.UserService;
+
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,36 +22,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
-    @Mock
-    private IUserRepository userRepository;
+    @Mock private IUserRepository userRepository;
+    @Mock private PasswordEncoder passwordEncoder;
+    @Mock private IAuthorizationService authorizationService;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private IAuthorizationService authorizationService;
-
-    @InjectMocks
-    private UserService userService;
+    @InjectMocks private UserService userService;
 
     private User user;
     private UUID userId;
@@ -61,49 +52,50 @@ public class UserServiceTest {
 
     @Test
     void shouldUpdateExistingUser() {
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        // autoriza
+        willDoNothing().given(authorizationService).ensureSelfOrAdmin(userId);
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(passwordEncoder.encode(anyString())).willReturn("ignored");
+        given(userRepository.save(any(User.class))).willAnswer(inv -> inv.getArgument(0));
 
         User updated = userService.updateUser(userId, "Jane Doe", "jane@example.com", "123");
 
         assertThat(updated.getName()).isEqualTo("Jane Doe");
         assertThat(updated.getEmail()).isEqualTo("jane@example.com");
+        verify(userRepository).save(updated);
     }
 
     @Test
     void shouldThrowWhenUpdatingNonexistentUser() {
-        // dado que não existe usuário com esse ID
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        willDoNothing().given(authorizationService).ensureSelfOrAdmin(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
 
-        // ao tentar atualizar, deve lançar UserNotFoundException
-        assertThatThrownBy(() -> userService.updateUser(
-                userId,
-                "Jane Doe",
-                "jane@example.com",
-                "newPass"
-        ))
+        assertThatThrownBy(() ->
+                userService.updateUser(userId, "Jane Doe", "jane@example.com", "newPass")
+        )
                 .isInstanceOf(UserNotFoundException.class)
-                // o construtor de updateUser passa only o id, então a mensagem conterá o UUID
                 .hasMessageContaining(userId.toString());
     }
 
     @Test
     void shouldListAllUsers() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<User> mockPage = new PageImpl<>(List.of(user), pageable, 1);
+        willDoNothing().given(authorizationService).ensureAdmin();
 
-        when(userRepository.findAll(pageable)).thenReturn(mockPage);
+        Pageable pageReq = PageRequest.of(0, 10);
+        Page<User> mockPage = new PageImpl<>(List.of(user), pageReq, 1);
+        given(userRepository.findAll(pageReq)).willReturn(mockPage);
 
-        Page<User> result = userService.listAllUsers(pageable);
+        Page<User> result = userService.listAllUsers(pageReq);
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).getEmail()).isEqualTo(user.getEmail());
     }
 
-
     @Test
     void shouldGetUserById() {
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        willDoNothing().given(authorizationService).ensureSelfOrAdmin(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
         Optional<User> found = userService.getUserById(userId);
 
@@ -112,9 +104,11 @@ public class UserServiceTest {
 
     @Test
     void shouldGetUserByEmail() {
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        String email = user.getEmail();
+        willDoNothing().given(authorizationService).ensureSelfOrAdmin(email);
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
 
-        Optional<User> found = userService.getEmailById(user.getEmail());
+        Optional<User> found = userService.getEmailById(email);
 
         assertThat(found).isPresent().contains(user);
     }
@@ -122,38 +116,40 @@ public class UserServiceTest {
     @Test
     void shouldCreateUserSuccessfully() {
         String rawPassword = "newPass123";
-        when(userRepository.existsByEmail(anyString())).thenReturn(false);
-        when(passwordEncoder.encode(rawPassword)).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        String rawEmail    = user.getEmail();
 
-        User result = userService.createUser(user.getName(), user.getEmail(), rawPassword, Role.USER);
+        willDoNothing().given(authorizationService).ensureSelfOrAdmin(rawEmail);
+        given(userRepository.existsByEmail(rawEmail)).willReturn(false);
+        given(passwordEncoder.encode(rawPassword)).willReturn("encodedPassword");
+        given(userRepository.save(any(User.class))).willAnswer(inv -> inv.getArgument(0));
+
+        User result = userService.createUser(user.getName(), rawEmail, rawPassword, Role.USER);
 
         assertThat(result.getName()).isEqualTo(user.getName());
-        assertThat(result.getEmail()).isEqualTo(user.getEmail());
+        assertThat(result.getEmail()).isEqualTo(rawEmail);
         assertThat(result.getPassword()).isEqualTo("encodedPassword");
     }
 
     @Test
     void shouldThrowWhenEmailAlreadyExists() {
-        // dado que o repositório indica email em uso
-        when(userRepository.existsByEmail("exists@example.com")).thenReturn(true);
+        String rawEmail = "exists@example.com";
 
-        // ao tentar criar user, deve lançar UserNotFoundException("Email already in use.")
-        assertThatThrownBy(() -> userService.createUser(
-                "Name",
-                "exists@example.com",
-                "pass123",
-                Role.USER
-        ))
+        willDoNothing().given(authorizationService).ensureSelfOrAdmin(rawEmail);
+        given(userRepository.existsByEmail(rawEmail)).willReturn(true);
+
+        assertThatThrownBy(() ->
+                userService.createUser("Name", rawEmail, "pass123", Role.USER)
+        )
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessage("Email already in use.");
     }
 
     @Test
     void shouldUpdatePasswordSuccessfully() {
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode("newPass")).thenReturn("encodedNewPass");
-        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+        willDoNothing().given(authorizationService).ensureSelfOrAdmin(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(passwordEncoder.encode("newPass")).willReturn("encodedNewPass");
+        given(userRepository.save(any(User.class))).willAnswer(inv -> inv.getArgument(0));
 
         User result = userService.updatePassword(userId, "newPass");
 
@@ -162,19 +158,33 @@ public class UserServiceTest {
 
     @Test
     void shouldThrowWhenUserNotFoundForPasswordUpdate() {
-        // dado que não existe usuário com esse ID
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        willDoNothing().given(authorizationService).ensureSelfOrAdmin(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
 
-        // ao tentar atualizar senha, deve lançar UserNotFoundException("User not found")
-        assertThatThrownBy(() -> userService.updatePassword(userId, "newPass"))
+        assertThatThrownBy(() ->
+                userService.updatePassword(userId, "newPass")
+        )
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessage("User not found");
     }
 
-
     @Test
     void shouldDeleteUser() {
+        willDoNothing().given(authorizationService).ensureSelfOrAdmin(userId);
+
         userService.deleteUser(userId);
+
         verify(userRepository).deleteById(userId);
     }
+
+    @Test
+    void shouldReturnEmptyWhenGetByIdNotFound() {
+        willDoNothing().given(authorizationService).ensureSelfOrAdmin(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+        Optional<User> result = userService.getUserById(userId);
+
+        assertThat(result).isEmpty();
+    }
+
 }
