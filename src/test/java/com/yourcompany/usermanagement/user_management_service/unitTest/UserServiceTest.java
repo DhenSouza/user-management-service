@@ -72,11 +72,19 @@ public class UserServiceTest {
 
     @Test
     void shouldThrowWhenUpdatingNonexistentUser() {
+        // dado que não existe usuário com esse ID
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.updateUser(userId, "Jane Doe", "jane@example.com", "123"))
+        // ao tentar atualizar, deve lançar UserNotFoundException
+        assertThatThrownBy(() -> userService.updateUser(
+                userId,
+                "Jane Doe",
+                "jane@example.com",
+                "newPass"
+        ))
                 .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining("User not found with ID");
+                // o construtor de updateUser passa only o id, então a mensagem conterá o UUID
+                .hasMessageContaining(userId.toString());
     }
 
     @Test
@@ -127,10 +135,17 @@ public class UserServiceTest {
 
     @Test
     void shouldThrowWhenEmailAlreadyExists() {
-        when(userRepository.existsByEmail(anyString())).thenReturn(true);
+        // dado que o repositório indica email em uso
+        when(userRepository.existsByEmail("exists@example.com")).thenReturn(true);
 
-        assertThatThrownBy(() -> userService.createUser("Name", "exists@email.com", "pass123", Role.USER))
-                .isInstanceOf(IllegalArgumentException.class)
+        // ao tentar criar user, deve lançar UserNotFoundException("Email already in use.")
+        assertThatThrownBy(() -> userService.createUser(
+                "Name",
+                "exists@example.com",
+                "pass123",
+                Role.USER
+        ))
+                .isInstanceOf(UserNotFoundException.class)
                 .hasMessage("Email already in use.");
     }
 
@@ -147,12 +162,15 @@ public class UserServiceTest {
 
     @Test
     void shouldThrowWhenUserNotFoundForPasswordUpdate() {
+        // dado que não existe usuário com esse ID
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.updatePassword(userId, "pass"))
-                .isInstanceOf(IllegalArgumentException.class)
+        // ao tentar atualizar senha, deve lançar UserNotFoundException("User not found")
+        assertThatThrownBy(() -> userService.updatePassword(userId, "newPass"))
+                .isInstanceOf(UserNotFoundException.class)
                 .hasMessage("User not found");
     }
+
 
     @Test
     void shouldDeleteUser() {

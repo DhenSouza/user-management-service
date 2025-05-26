@@ -107,6 +107,9 @@ public class AddressControllerIntegrationTest {
 
     @Test
     void shouldCreateAddress_withValidJwt() throws Exception {
+        when(cepService.getCodePostal("03977-460"))
+                .thenReturn(makeViaCep());
+
         AddressCreateRequest request =
                 new AddressCreateRequest(
                         "Rua A",

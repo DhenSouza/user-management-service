@@ -99,7 +99,7 @@ public class AddressService implements IAddressService {
     public AddressCepResponse getAddressFromCep(String cep) {
         ViaCepResponse viaCep = cepService.getCodePostal(cep);
 
-        if (viaCep.getPostalCode() == null) {
+        if (viaCep == null) {
             throw new ExternalServiceException("CEP not found or invalid");
         }
 
