@@ -1,15 +1,15 @@
 package com.yourcompany.usermanagement.user_management_service.application.service.authorization;
 
+import com.yourcompany.usermanagement.user_management_service.Domain.exception.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
 import com.yourcompany.usermanagement.user_management_service.application.service.authorization.interfaces.IAuthorizationService;
-import com.yourcompany.usermanagement.user_management_service.application.service.exceptions.UserNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IUserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import org.springframework.security.access.AccessDeniedException;
 import java.util.UUID;
 
 @Component

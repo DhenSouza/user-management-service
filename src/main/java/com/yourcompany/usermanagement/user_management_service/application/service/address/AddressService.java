@@ -7,6 +7,7 @@ import com.yourcompany.usermanagement.user_management_service.application.web.ad
 import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressCreateRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.address.dto.AddressUpdateRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.errorHandler.ExternalServiceException;
+import com.yourcompany.usermanagement.user_management_service.application.web.errorHandler.ResourceNotFoundException;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.externalServices.viaCepApi.dto.ViaCepResponse;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.externalServices.viaCepApi.interfaces.ICepService;
 import com.yourcompany.usermanagement.user_management_service.infrastructure.repository.interfaces.IAddressRepository;
@@ -40,8 +41,8 @@ public class AddressService implements IAddressService {
 
         var addressViaCep = this.getAddressFromCep(request.postalCode());
 
-        if(addressViaCep.error()){
-            throw new ExternalServiceException("Postal Code invalid");
+        if(addressViaCep == null){
+            throw new ExternalServiceException("Postal not found with ViaCepAPI");
         }
 
         Address address = Address.builder()
@@ -60,8 +61,12 @@ public class AddressService implements IAddressService {
 
     @Transactional
     public void deleteAddress(UUID addressId) {
+        if (!addressRepository.existsById(addressId)) {
+            throw new ResourceNotFoundException("Address not found with ID: " + addressId);
+        }
         addressRepository.deleteById(addressId);
     }
+
 
     @Transactional
     public Address updateAddress(UUID id, AddressUpdateRequest request) {
@@ -94,7 +99,7 @@ public class AddressService implements IAddressService {
     public AddressCepResponse getAddressFromCep(String cep) {
         ViaCepResponse viaCep = cepService.getCodePostal(cep);
 
-        if (viaCep.getPostalCode() == null) {
+        if (viaCep == null) {
             throw new ExternalServiceException("CEP not found or invalid");
         }
 
@@ -108,8 +113,7 @@ public class AddressService implements IAddressService {
                 viaCep.getIbgeCode(),
                 viaCep.getGiaCode(),
                 viaCep.getDdd(),
-                viaCep.getSiafiCode(),
-                viaCep.getError()
+                viaCep.getSiafiCode()
         );
     }
 

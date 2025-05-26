@@ -38,6 +38,4 @@ public class ViaCepResponse {
     @JsonProperty("siafi")
     private String siafiCode;
 
-    @JsonProperty("erro")
-    private Boolean error;
 }
