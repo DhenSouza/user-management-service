@@ -27,7 +27,7 @@ Uma API RESTful para gerenciamento de usuários e endereços, com autenticação
 
 * Java 21+
 * Maven 3.9+
-* Docker (opcional para banco de dados real)
+* Docker (opcional para banco de dados real e de teste)
 
 ---
 
@@ -41,64 +41,69 @@ git clone git@github.com:DhenSouza/user-management-service.git
 
 ### Banco de Dados
 
-Por padrão o projeto usa PostgreSQL com Docker:
+Este projeto disponibiliza dois ambientes de banco PostgreSQL via Docker:
 
-### 🐳 Rodando o banco PostgreSQL com Docker
+1. **Banco principal** (para desenvolvimento e produção local)
+2. **Banco de teste** (para execução de testes automatizados)
 
-Você pode iniciar o PostgreSQL de duas formas:
+#### 🐳 Docker Compose completo
 
-#### ✅ Usando `docker-compose.yml` (recomendado e usado atualmente no projeto)
-
-Crie um arquivo `docker-compose.yml` com o seguinte conteúdo:
+Crie (ou atualize) um arquivo `docker-compose.yml` na raiz do projeto com o seguinte conteúdo:
 
 ```yaml
+version: '3.8'
+
 services:
-  postgres:
+  user-service:
     image: postgres:15.2
-    container_name: postgres
+    container_name: user-service
+    restart: always
     environment:
+      POSTGRES_DB: userdb
       POSTGRES_USER: administration
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: userdb
       POSTGRES_INITDB_ARGS: "--auth=md5"
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - userdb_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  db-test:
+    image: postgres:15.2
+    container_name: postgres_userdb_test
+    restart: always
+    environment:
+      POSTGRES_DB: userdb_test
+      POSTGRES_USER: administration
+      POSTGRES_PASSWORD: admin
+      POSTGRES_INITDB_ARGS: "--auth=md5"
+    ports:
+      - "5434:5432"
+    volumes:
+      - userdb_test_data:/var/lib/postgresql/data
     networks:
       - backend
 
 volumes:
-  postgres_data:
+  userdb_data:
+  userdb_test_data:
 
 networks:
   backend:
+    driver: bridge
 ```
 
-Depois, execute:
+> 🚀 **Iniciar os containers**
+>
+> ```bash
+> docker-compose up -d
+> ```
 
-```bash
-docker-compose up -d
-```
+#### 🔧 Configuração de conexões no `application.properties`
 
-#### ✅ Usando `docker run` diretamente
-
-Se preferir, você pode iniciar o container com:
-
-```bash
-docker run --name postgres \
-  -e POSTGRES_USER=administration \
-  -e POSTGRES_PASSWORD=admin \
-  -e POSTGRES_DB=userdb \
-  -p 5433:5432 \
-  -d postgres
-```
-
-#### ✅ Usando a aplicação diretamente com banco de dados local:
-- Para isso basta nao rodar o docker-compose.yml e setar as configurações em seu application.properties de acordo com sua necessidade: 
-
-
-#### 🛠️ Configuração do `application.properties`
+Para o banco principal (desenvolvimento local):
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5433/userdb
@@ -106,21 +111,29 @@ spring.datasource.username=administration
 spring.datasource.password=admin
 ```
 
-> 💡 **Nota:** certifique-se de que a porta `5433` não esteja sendo usada por outro serviço.
-> > 💡 **Nota:** a porta `5433` foi utilizada para evitar conflitos caso ja tenha um banco de dados PostgresSQL com configurações default.
+Para os testes de integração (arquivo `src/test/resources/application-test.properties`):
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5434/userdb_test
+spring.datasource.username=administration
+spring.datasource.password=admin
+spring.flyway.enabled=false
+```
+
+> 💡 **Nota:** ajuste as portas caso já haja outro PostgreSQL rodando.
 
 ---
 
 ### 🔒 Secret Management
 
-Atualmente, o projeto utiliza a configuração de secrets (como senhas e chaves JWT) diretamente no `application.properties` como uma solução **provisória**, com valores hardcoded.  
-A recomendação ideal é armazenar essas informações sensíveis em serviços seguros como o **AWS Secrets Manager**, **HashiCorp Vault** ou similares, com acesso via injeção de dependência ou variáveis de ambiente.
+Atualmente, o projeto utiliza a configuração de secrets (como senhas e chaves JWT) diretamente no `application.properties` como uma solução **provisória**. A recomendação ideal é usar serviços seguros como **AWS Secrets Manager**, **HashiCorp Vault** ou variáveis de ambiente.
 
 ```properties
 # === JWT Configuration ===
 security.jwt.secret=hVZSpn47ytq9kCM7zPIYmeNgCWbLogF0eQlVa0tVXTYJDrBKQHX8u
 security.jwt.expiration=3600000
 ```
+
 ---
 
 ### Subir com Docker
@@ -129,20 +142,18 @@ security.jwt.expiration=3600000
 docker-compose up -d
 ```
 
-> Certifique-se de que seu `application.properties` esteja configurado corretamente para usar PostgreSQL e os secrets adequados.
+> Certifique-se de que seu `application.properties` ou `application-test.properties` esteja configurado para usar o banco correto.
 
 ---
+
 ### 📦 Migrations automáticas com Flyway
 
-O projeto utiliza o Flyway para versionamento e execução automática de scripts SQL na inicialização.  
-As migrations devem ser colocadas no diretório `src/main/resources/db/migration` com o prefixo `V` seguido do número da versão e nome descritivo.
+O projeto utiliza Flyway para versionamento e execução automática de scripts SQL.
 
-Exemplo:
-- `V1__create_table_users.sql`
-- `V2__insert_initial_roles.sql`
+Coloque migrations em `src/main/resources/db/migration` com prefixo `V`:
 
-Exemplo de conteúdo:
 ```sql
+-- exemplo: V1__create_table_users.sql
 CREATE TABLE users (
     id UUID PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -151,22 +162,18 @@ CREATE TABLE users (
 );
 ```
 
-Configuração necessária no `application.properties`:
+Configuração adicional em `application.properties`:
+
 ```properties
 spring.flyway.enabled=true
 spring.flyway.locations=classpath:db/migration
 spring.flyway.ignore-future-migration=true
 spring.flyway.ignore-missing-migrations=true
 spring.flyway.fail-on-missing-locations=false
-spring.flyway.skip-default-callbacks=true
-spring.flyway.skip-default-resolvers=true
-spring.flyway.teams.enabled=false
-spring.flyway.teams.url-check-enabled=false
 ```
 
-➡️ Com isso, ao rodar a aplicação com `./mvnw spring-boot:run` ou `docker-compose up`, as migrations serão executadas automaticamente se ainda não aplicadas.
-
 ---
+
 ### Executar localmente via Maven
 
 ```bash
@@ -189,40 +196,20 @@ A aplicação subirá em: [http://localhost:8080](http://localhost:8080)
   "password": "admin123"
 }
 ```
-- OBS: Projeto tera um Migrator que criara um usuario Administrador, para testar os endpoints livremente basta realizar a request de login
 
-**Request de exemplo do Login**
-```txt
-curl --request POST \
---url http://localhost:8080/api/auth/login \
---header 'Content-Type: application/json' \
---header 'User-Agent: insomnia/11.1.0' \
---data '{
-"email": "admin@example.com",
-"password": "admin123"
-}'
-```
-**Request de exemplo de endpoint**
-```txt
+> Há um migrator que cria um usuário ADMIN inicial para testes de endpoints.
+
+### Exemplo de request protegido
+
+```bash
 curl --request GET \
---url 'http://localhost:8080/api/users?page=0&size=5&sort=name%2Casc' \
---header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTc0NzA2ODYwMiwiZXhwIjoxNzQ3MDcyMjAyfQ.08MhFGTmk1iayPeJE4v3s61rqQ9VM0-qql99KLTJpwo' \
---header 'User-Agent: insomnia/11.1.0'
-```
-```
-```
-
-Use o token JWT retornado no header das requisições protegidas:
-
-```
-Authorization: Bearer <token>
+  --url 'http://localhost:8080/api/users?page=0&size=5&sort=name%2Casc' \
+  --header 'Authorization: Bearer <token>'
 ```
 
 ---
 
 ## 🔖 Documentação Swagger
-
-Disponível em:
 
 * [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 * [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
