@@ -17,9 +17,11 @@ public interface IUserService {
 
     User createUser(String name, String rawEmail, String rawPassword, Role role);
 
-    public void deleteUser(UUID id);
+    void deleteUser(UUID id);
 
     User updatePassword(UUID userId, String newRawPassword);
 
     User updateUser(UUID id, String name, String email, String rawPassword);
+
+    void updateUserRole(UUID id, Role newRole);
 }

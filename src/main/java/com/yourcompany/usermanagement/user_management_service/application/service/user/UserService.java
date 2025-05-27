@@ -88,4 +88,16 @@ public class UserService implements IUserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
+
+    @Transactional
+    public void updateUserRole(UUID id, Role newRole) {
+        authorizationService.ensureAdmin();
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found for role update"));
+
+        user.setRole(newRole);
+        userRepository.save(user);
+    }
+
 }

@@ -5,11 +5,13 @@ import com.yourcompany.usermanagement.user_management_service.Domain.model.User;
 import com.yourcompany.usermanagement.user_management_service.application.service.user.interfaces.IUserService;
 import com.yourcompany.usermanagement.user_management_service.application.web.login.dto.PasswordUpdateRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.mapper.UserMapper;
+import com.yourcompany.usermanagement.user_management_service.application.web.user.dto.RoleRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.user.dto.UserCreateRequest;
 import com.yourcompany.usermanagement.user_management_service.application.web.user.dto.UserResponse;
 import com.yourcompany.usermanagement.user_management_service.application.web.user.dto.UserUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
@@ -71,5 +73,11 @@ public class UserController {
             @Valid @RequestBody UserUpdateRequest request) {
         User updated = userService.updateUser(id, request.name(), request.email(), request.password());
         return ResponseEntity.ok(UserMapper.toResponse(updated));
+    }
+
+    @PatchMapping("/{id}/privileges")
+    public ResponseEntity<User> updateRoleUser(@Valid @PathVariable UUID id, @RequestBody RoleRequest request){
+        userService.updateUserRole(id, request.role());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

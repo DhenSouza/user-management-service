@@ -20,7 +20,7 @@ public record UserCreateRequest(
 
         @Schema(description = "User password", example = "SecureP@ssword1", minLength = 8, maxLength = 20)
         @NotBlank(message = "Password is required")
-        @Size(min = 8, max = 20, message = "Password must be between 8 and 20 characters")
+        @Size(min = 4, max = 20, message = "Password must be between 8 and 20 characters")
         String password
 
 ) {}
