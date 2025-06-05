@@ -24,4 +24,6 @@ public interface IUserService {
     User updateUser(UUID id, String name, String email, String rawPassword);
 
     void updateUserRole(UUID id, Role newRole);
+
+    Page<User> searchUsers(String search, Pageable pageable);
 }

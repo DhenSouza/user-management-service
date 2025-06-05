@@ -100,4 +100,9 @@ public class UserService implements IUserService {
         userRepository.save(user);
     }
 
+    @Override
+    public Page<User> searchUsers(String search, Pageable pageable) {
+        return userRepository.searchUsers(search, pageable);
+    }
+
 }

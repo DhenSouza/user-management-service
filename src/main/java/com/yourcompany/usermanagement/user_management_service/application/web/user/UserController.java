@@ -35,6 +35,15 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<UserResponse>> searchUsers(
+            @RequestParam("search") String search,
+            Pageable pageable) {
+        Page<User> users = userService.searchUsers(search, pageable);
+        return ResponseEntity.ok(users.map(UserMapper::toResponse));
+    }
+
+
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable UUID id) {
         User user = userService.getUserById(id)
